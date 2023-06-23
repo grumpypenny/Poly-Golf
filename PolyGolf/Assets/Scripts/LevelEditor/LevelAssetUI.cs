@@ -7,7 +7,6 @@ public class LevelAssetUI : MonoBehaviour
 
     public void ClickItem()
     {
-        Debug.Log(assetId);
         GameObject.FindGameObjectWithTag("PlacementSystem")
                   .GetComponent<AssetPlacementSystem>()
                   .StartPlacement(assetId);

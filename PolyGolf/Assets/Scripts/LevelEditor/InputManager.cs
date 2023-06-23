@@ -15,7 +15,7 @@ public class InputManager : MonoBehaviour
     private LayerMask placementLayerMask;
 
     public event Action OnClicked;
-    //public event Action OnExit;
+    public event Action OnExit;
 
     private void Update()
     {
@@ -24,10 +24,10 @@ public class InputManager : MonoBehaviour
             OnClicked?.Invoke();
         }
 
-        /*if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             OnExit?.Invoke();
-        }*/
+        }
     }
 
     public bool isPointerOverUI() => EventSystem.current.IsPointerOverGameObject();

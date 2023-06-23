@@ -6,9 +6,6 @@ using UnityEngine;
 public class AssetPlacementSystem : MonoBehaviour
 {
     [SerializeField]
-    GameObject mouseIndicator;
-
-    [SerializeField]
     private InputManager inputManager;
 
     [SerializeField]
@@ -16,16 +13,20 @@ public class AssetPlacementSystem : MonoBehaviour
 
     [SerializeField]
     private LevelAssetsDatabase database;
-    private int selectedObjectIdx = -1;
 
     [SerializeField]
-    private PreviewSystem preview;
+    private PreviewSystem previewSystem;
+
+    [SerializeField]
+    private AssetPlacer assetPlacer;
+
+    IPlacementState placementState;
 
     private Vector3Int lastDetectedPosition = Vector3Int.zero;
 
-    private LevelEditorGridData assetGridData, assetData;
+    private LevelEditorGridData assetGridData;
+    private LevelEditorGridData assetData;
 
-    private List<GameObject> placedAssets = new();
 
     private void Start()
     {
@@ -37,10 +38,9 @@ public class AssetPlacementSystem : MonoBehaviour
     public void StartPlacement(int id)
     {
         StopPlacement();
-        selectedObjectIdx = id;
-        preview.StartShowingPlacementPreview(database.assets[selectedObjectIdx].Prefab, database.assets[selectedObjectIdx].Size);
+        placementState = new PlacementState(id, grid, previewSystem, database, assetGridData, assetData, assetPlacer);
         inputManager.OnClicked += PlaceAsset;
-        //inputManager.OnExit += StopPlacement;
+        inputManager.OnExit += StopPlacement;
     }
 
     private void PlaceAsset()
@@ -52,45 +52,26 @@ public class AssetPlacementSystem : MonoBehaviour
         Vector3 mousePosition = inputManager.GetSelectedLevelPosition();
         Vector3Int gridPosition = grid.WorldToCell(mousePosition);
 
-        bool isPlacementValid = CheckPlacementValidity(gridPosition, selectedObjectIdx);
-        if (!isPlacementValid)
+        placementState.OnAction(gridPosition);
+    }
+
+     private void StopPlacement()
+     {
+        if (placementState == null)
         {
             return;
         }
 
-        GameObject assetParent = Instantiate(new GameObject());
-        GameObject assetObject = Instantiate(database.assets[selectedObjectIdx].Prefab);
-        assetObject.transform.SetParent(assetParent.transform);
-        assetParent.transform.position = grid.CellToWorld(gridPosition);
-        assetObject.transform.localPosition = new Vector3(0.5f + ((database.assets[selectedObjectIdx].Size.x - 1) * 0.5f),
-                                                          0f,
-                                                          0.5f + ((database.assets[selectedObjectIdx].Size.y - 1) * 0.5f));
-        placedAssets.Add(assetObject);
-
-        LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
-        selectedData.AddObjectAt(gridPosition, database.assets[selectedObjectIdx].Size, selectedObjectIdx);
-
-        preview.UpdatePosition(grid.CellToWorld(gridPosition), false);    
-    }
-
-    private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIdx)
-    {
-        LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
-        return selectedData.CanPlaceAssetAt(gridPosition, database.assets[selectedObjectIdx].Size);
-    }
-
-    private void StopPlacement()
-    {
-        selectedObjectIdx = -1;
-        preview.StopShowingPreview();
+        placementState.EndState();
         inputManager.OnClicked -= PlaceAsset;
-        //inputManager.OnExit -= StopPlacement;
+        inputManager.OnExit -= StopPlacement;
         lastDetectedPosition = Vector3Int.zero;
-    }
+        placementState = null;
+     }
 
     private void Update()
     {
-        if (selectedObjectIdx < 0)
+        if (placementState == null)
         {
             return;
         }
@@ -100,12 +81,7 @@ public class AssetPlacementSystem : MonoBehaviour
 
         if (lastDetectedPosition != gridPosition)
         {
-            bool isPlacementValid = CheckPlacementValidity(gridPosition, selectedObjectIdx);
-
-            mouseIndicator.transform.position = mousePosition;
-
-            preview.UpdatePosition(grid.CellToWorld(gridPosition), isPlacementValid);
-            
+            placementState.UpdateState(gridPosition);
             lastDetectedPosition = gridPosition;
         }
     }
