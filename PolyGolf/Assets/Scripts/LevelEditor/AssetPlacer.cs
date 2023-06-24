@@ -40,7 +40,6 @@ public class AssetPlacer : MonoBehaviour
                                                           0.5f + ((asset.Size.y - 1) * 0.5f) + lengthOffset.y);
         assetObject.transform.localEulerAngles = new Vector3(0f, rotation * 90f, 0f);
         placedAssets.Add(assetObject);
-        Debug.Log(position);
         return placedAssets.Count - 1;
     }
 
