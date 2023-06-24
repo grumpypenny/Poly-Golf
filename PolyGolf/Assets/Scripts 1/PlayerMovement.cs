@@ -14,6 +14,9 @@ public class PlayerMovement : MonoBehaviour
     [field: SerializeField] private float maxDrag = 0.25f;
     [field: SerializeField] private float minDrag = 0.05f;
 
+    // the amount of force with max power
+    [field: SerializeField] private float baseForce = 1f;
+
     private Camera cam;
     private Vector3 pointer;
 
@@ -30,31 +33,43 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         Look();
-        
-        Charge();
-    
-    
+        SetSliderValue();
     }
 
-    private void Charge()
+    private void FixedUpdate()
+    {
+        Putt();
+    }
+
+    private void Putt()
+    {
+
+
+
+    }
+
+    private void SetSliderValue()
     {
         if (Input.GetMouseButton(0))
         {
             float amount = Vector3.SqrMagnitude(transform.position - pointer) / maxDrag;
-            if (amount > minDrag) 
+            if (amount > minDrag)
             {
                 slider.value = amount;
-            } else
+            }
+            else
             {
                 slider.value = 0f;
             }
         }
-        if (Input.GetMouseButtonUp(0)) 
+        if (Input.GetMouseButtonUp(0))
         {
             // launch the ball
+            Vector3 force = transform.forward.normalized * baseForce * slider.value;
+            force.y = 0f;
+            rb.AddForce(force, ForceMode.Impulse);
             slider.value = 0;
         }
-
     }
 
     private void Look()

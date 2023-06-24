@@ -546,6 +546,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   slider: {fileID: 1568169547481137479}
+  maxDrag: 0.5
+  minDrag: 0.05
+  baseForce: 5
 --- !u!33 &6950333518472985906
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -603,7 +606,7 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8483298165230395454}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 2c215b9e36c16d547aee9f033aa06b17, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -639,11 +642,11 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!1 &8576900810295397597
 GameObject:
   m_ObjectHideFlags: 0
