@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(SphereCollider))]
 [RequireComponent(typeof(Rigidbody))]
@@ -7,9 +8,17 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private SphereCollider sphereCollider;
     [SerializeField] private LayerMask mask;
+    [SerializeField] private Slider slider;
+
+    // the max distance one has to drag for max power
+    [field: SerializeField] private float maxDrag = 4f;
 
     private Camera cam;
     private Vector3 pointer;
+
+    // these variables are used to track mouse drag distance
+    private Vector3 downPointer;
+    private Vector3 upPointer;
     // Start is called before the first frame update
     void Start()
     {
@@ -22,43 +31,43 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ////if (Input.GetMouseButton(0))
-        ////{
-        ////Gizmos.color = Color.yellow;
-        ////Gizmos.DrawSphere(Camera.main.ScreenToWorldPoint(Input.mousePosition), 20f);
-        //Debug.DrawLine(transform.position, Camera.main.ScreenToWorldPoint(Input.mousePosition), Color.red);
-        ////Vector3 flatInput = cam.ScreenToWorldPoint(Input.mousePosition);
-        ////flatInput.y = 0;
+        Look();
+        
+        Charge();
+    
+    
+    }
 
-        ////Vector3 relative = flatInput - transform.position;
-        ////relative.y = 0;
-        ////Debug.DrawRay(transform.position, relative, Color.blue);
-        ////}
+    private void Charge()
+    {
+        if (Input.GetMouseButtonDown(0)) 
+        {
+            upPointer = pointer;
+            downPointer = pointer;
+        }
+        if (Input.GetMouseButton(0))
+        {
+            upPointer = pointer;
+
+            float amount = Vector3.SqrMagnitude(upPointer - downPointer) / maxDrag;
+            slider.value = amount;
+        }
+        if (Input.GetMouseButtonUp(0)) 
+        {
+            // launch the ball
+            slider.value = 0;
+        }
+
+    }
+
+    private void Look()
+    {
         RaycastHit hit;
         if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, 100f, mask))
         {
             pointer = hit.point;
             pointer.y = transform.position.y;
         }
-        Vector3 direction = pointer - transform.position;
         transform.LookAt(pointer);
-        //transform.eulerAngles = direction;
-        Debug.DrawLine(transform.position, pointer, Color.red);
-        Debug.DrawRay(transform.position, direction, Color.yellow);
     }
-
-    private void FixedUpdate()
-    {
-
-    }
-
-    //private void OnDrawGizmos()
-    //{
-    //    if (Input.GetMouseButtonDown(0))
-    //    {
-    //        Gizmos.color = Color.yellow;
-    //        Gizmos.DrawSphere(Camera.main.ScreenToWorldPoint(Input.mousePosition), 20f);
-    //        Debug.Log("drawing point");
-    //    }
-    //}
 }
