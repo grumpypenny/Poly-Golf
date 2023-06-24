@@ -23,10 +23,13 @@ public class AssetPlacementSystem : MonoBehaviour
     IPlacementState placementState;
 
     private Vector3Int lastDetectedPosition = Vector3Int.zero;
+    private int lastDetectedRotation = -1;
+    private int lastAssetHeight = -1;
 
     private LevelEditorGridData assetGridData;
     private LevelEditorGridData assetData;
-
+    private int currentAssetRotation = 0;
+    private int currentAssetHeight = 0;
 
     private void Start()
     {
@@ -40,6 +43,11 @@ public class AssetPlacementSystem : MonoBehaviour
         StopPlacement();
         placementState = new PlacementState(id, grid, previewSystem, database, assetGridData, assetData, assetPlacer);
         inputManager.OnClicked += PlaceAsset;
+        inputManager.OnRemoved += RemoveAsset;
+        inputManager.OnRotateClockwise += RotateAssetClockwise;
+        inputManager.OnRotateCounterClockwise += RotateAssetCounterClockwise;
+        inputManager.OnIncreaseHeight += IncreaseAssetHeight;
+        inputManager.OnDecreaseHeight += DecreaseAssetHeight;
         inputManager.OnExit += StopPlacement;
     }
 
@@ -52,10 +60,23 @@ public class AssetPlacementSystem : MonoBehaviour
         Vector3 mousePosition = inputManager.GetSelectedLevelPosition();
         Vector3Int gridPosition = grid.WorldToCell(mousePosition);
 
-        placementState.OnAction(gridPosition);
+        placementState.OnAction(gridPosition, currentAssetRotation, currentAssetHeight);
     }
 
-     private void StopPlacement()
+    private void RemoveAsset()
+    {
+        if (inputManager.isPointerOverUI())
+        {
+            return;
+        }
+
+        Vector3 mousePosition = inputManager.GetSelectedLevelPosition();
+        Vector3Int gridPosition = grid.WorldToCell(mousePosition);
+
+        placementState.OnRemove(gridPosition, currentAssetHeight);
+    }
+
+    private void StopPlacement()
      {
         if (placementState == null)
         {
@@ -64,10 +85,41 @@ public class AssetPlacementSystem : MonoBehaviour
 
         placementState.EndState();
         inputManager.OnClicked -= PlaceAsset;
+        inputManager.OnRemoved -= RemoveAsset;
         inputManager.OnExit -= StopPlacement;
+        inputManager.OnRotateClockwise -= RotateAssetClockwise;
+        inputManager.OnRotateCounterClockwise -= RotateAssetCounterClockwise;
+        inputManager.OnIncreaseHeight -= IncreaseAssetHeight;
+        inputManager.OnDecreaseHeight -= DecreaseAssetHeight;
         lastDetectedPosition = Vector3Int.zero;
+        lastDetectedRotation = -1;
+        lastAssetHeight = -1;
         placementState = null;
      }
+
+    private void RotateAssetCounterClockwise()
+    {
+        currentAssetRotation -= 1;
+        if (currentAssetRotation < 0)
+        {
+            currentAssetRotation = 3;
+        }
+    }
+
+    private void RotateAssetClockwise()
+    {
+        currentAssetRotation = (currentAssetRotation + 1) % 4;
+    }
+
+    private void IncreaseAssetHeight()
+    {
+        currentAssetHeight = Mathf.Clamp(currentAssetHeight + 1, 0, 3);
+    }
+
+    private void DecreaseAssetHeight()
+    {
+        currentAssetHeight = Mathf.Clamp(currentAssetHeight - 1, 0, 3);
+    }
 
     private void Update()
     {
@@ -79,10 +131,12 @@ public class AssetPlacementSystem : MonoBehaviour
         Vector3 mousePosition = inputManager.GetSelectedLevelPosition();
         Vector3Int gridPosition = grid.WorldToCell(mousePosition);
 
-        if (lastDetectedPosition != gridPosition)
+        if (lastDetectedPosition != gridPosition || lastDetectedRotation != currentAssetRotation || lastAssetHeight != currentAssetHeight)
         {
-            placementState.UpdateState(gridPosition);
+            placementState.UpdateState(gridPosition, currentAssetRotation, currentAssetHeight);
             lastDetectedPosition = gridPosition;
+            lastDetectedRotation = currentAssetRotation;
+            lastAssetHeight = currentAssetHeight;
         }
     }
 }

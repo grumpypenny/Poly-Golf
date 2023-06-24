@@ -15,6 +15,11 @@ public class InputManager : MonoBehaviour
     private LayerMask placementLayerMask;
 
     public event Action OnClicked;
+    public event Action OnRemoved;
+    public event Action OnRotateCounterClockwise;
+    public event Action OnRotateClockwise;
+    public event Action OnIncreaseHeight;
+    public event Action OnDecreaseHeight;
     public event Action OnExit;
 
     private void Update()
@@ -22,6 +27,31 @@ public class InputManager : MonoBehaviour
         if (Input.GetMouseButton(0))
         {
             OnClicked?.Invoke();
+        }
+
+        if (Input.GetMouseButton(1))
+        {
+            OnRemoved?.Invoke();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            OnRotateCounterClockwise?.Invoke();
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            OnRotateClockwise?.Invoke();
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            OnIncreaseHeight?.Invoke();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            OnDecreaseHeight?.Invoke();
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))

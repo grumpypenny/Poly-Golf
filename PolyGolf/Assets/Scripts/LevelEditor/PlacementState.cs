@@ -36,31 +36,45 @@ public class PlacementState : IPlacementState
         previewSystem.StopShowingPreview();
     }
 
-    public void OnAction(Vector3Int gridPosition)
+    public void OnAction(Vector3Int gridPosition, int rotation, int height)
     {
-        bool isPlacementValid = CheckPlacementValidity(gridPosition, selectedObjectIdx);
+        bool isPlacementValid = CheckPlacementValidity(gridPosition, rotation, height, selectedObjectIdx);
         if (!isPlacementValid)
         {
             return;
         }
 
-        int index = assetPlacer.PlaceObject(database.assets[selectedObjectIdx], grid.CellToWorld(gridPosition));
+        int index = assetPlacer.PlaceAsset(database.assets[selectedObjectIdx], grid.CellToWorld(gridPosition), rotation, height);
 
         LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
-        selectedData.AddObjectAt(gridPosition, database.assets[selectedObjectIdx].Size, index);
+        selectedData.AddObjectAt(gridPosition, rotation, height, database.assets[selectedObjectIdx].Size, index);
 
-        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), false);
+        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), rotation, height, false);
     }
 
-    private bool CheckPlacementValidity(Vector3Int gridPosition, int selectedObjectIdx)
+    public void OnRemove(Vector3Int gridPosition, int height)
     {
         LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
-        return selectedData.CanPlaceAssetAt(gridPosition, database.assets[selectedObjectIdx].Size);
+
+        int idx = selectedData.GetRepresentationIndex(gridPosition, height);
+        if (idx == -1)
+        {
+            return;
+        }
+
+        selectedData.RemoveObjectAt(gridPosition, height);
+        assetPlacer.RemoveAsset(idx);
     }
 
-    public void UpdateState(Vector3Int gridPosition)
+    private bool CheckPlacementValidity(Vector3Int gridPosition, int rotation, int height, int selectedObjectIdx)
     {
-        bool isPlacementValid = CheckPlacementValidity(gridPosition, selectedObjectIdx);
-        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), isPlacementValid);
+        LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
+        return selectedData.CanPlaceAssetAt(gridPosition, rotation, height, database.assets[selectedObjectIdx].Size);
+    }
+
+    public void UpdateState(Vector3Int gridPosition, int rotation, int height)
+    {
+        bool isPlacementValid = CheckPlacementValidity(gridPosition, rotation, height, selectedObjectIdx);
+        previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), rotation, height, isPlacementValid);
     }
 }
