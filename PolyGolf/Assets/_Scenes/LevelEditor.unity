@@ -747,10 +747,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 2015231721}
-  rotationSpeed: 50
-  zoomSpeed: 3.5
+  rotationSpeed: 75
+  zoomSpeed: 4
   minZoom: 2
-  maxZoom: 10
+  maxZoom: 11
   minPan: {x: -10, y: -10}
   maxPan: {x: 10, y: 10}
 --- !u!1 &1644612735

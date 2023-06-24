@@ -89,9 +89,7 @@ public class PreviewSystem : MonoBehaviour
     private void MovePreview(Vector3 position, int rotation, int height)
     {
         // I don't know how to make this better
-
         Vector2 lengthOffset = Vector2.zero;
-
         if (currentAssetSize.y > 1)
         {
             switch (rotation)
@@ -103,16 +101,13 @@ public class PreviewSystem : MonoBehaviour
                     lengthOffset = new Vector2(0.5f, -0.5f);
                     break;
                 case 2:
-                    lengthOffset = new Vector2(-0.5f, -1f);
+                    lengthOffset = new Vector2(0f, -1f);
                     break;
                 case 3:
-                    lengthOffset = new Vector2(-1f, -0.5f);
+                    lengthOffset = new Vector2(-0.5f, -0.5f);
                     break;
             }
         }
-
-        int[] sin = new int[4] { 0, 1, 0, -1 };
-        int[] cos = new int[4] { 1, 0, -1, 0 };
 
         previewObject.transform.position = position + (Vector3.up * previewYOffset);
         previewObject.transform.position += new Vector3(0.5f + ((currentAssetSize.x - 1) * 0.5f) + lengthOffset.x,
