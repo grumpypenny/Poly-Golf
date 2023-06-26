@@ -1,16 +1,23 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelEditorUIManager : MonoBehaviour
 {
 
-    public List<Sprite> levelItemSprites;
-    public GameObject levelItemUIPrefab;
-    public GameObject scrollViewContent;
+    [SerializeField]
+    private LevelAssetsDatabase database;
+
+    [SerializeField]
+    private GameObject levelItemUIPrefab;
+
+    [SerializeField]
+    private GameObject scrollViewContent;
 
     private List<LevelAssetUI> levelItems;
+    private AssetUIFilter currentFilter = AssetUIFilter.All;
 
-    void Start()
+    private void Start()
     {
         levelItems = new List<LevelAssetUI>();
 
@@ -21,13 +28,24 @@ public class LevelEditorUIManager : MonoBehaviour
         }
 
         // Populate scroll content with assets
-        for (int i = 0; i < levelItemSprites.Count; i++)  
+        for (int i = 0; i < database.assets.Count; i++)  
         {
+            if (currentFilter == AssetUIFilter.All || database.assets[i].FilterTag != currentFilter)
+            {
+                // Filter data
+                continue;
+            }
+
             GameObject levelItem = Instantiate(levelItemUIPrefab, new Vector3(0, 0, 0), Quaternion.identity);
             levelItem.GetComponent<LevelAssetUI>().assetId = i;
-            levelItem.GetComponent<LevelAssetUI>().SetSprite(levelItemSprites[i]);
+            levelItem.GetComponent<LevelAssetUI>().SetSprite(database.assets[i].Sprite);
             levelItem.transform.SetParent(scrollViewContent.transform);
             levelItems.Add(levelItem.GetComponent<LevelAssetUI>());
         }
+    }
+
+    public void UpdateFilterIndex(int newIndex)
+    {
+        currentFilter = (AssetUIFilter)newIndex;
     }
 }
