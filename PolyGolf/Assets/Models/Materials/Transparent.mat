@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Transparent
-  m_Shader: {fileID: -6465566751694194690, guid: a66c9014d01a8ae4fa19b7476589d217, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 1d27ea5fb915bad47b0c412a2324eedd, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
