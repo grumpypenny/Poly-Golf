@@ -6,7 +6,7 @@ public class AssetPlacer : MonoBehaviour
     [SerializeField]
     private List<GameObject> placedAssets = new();
 
-    public int PlaceAsset(AssetData asset, Vector3 position, int rotation, float height)
+    public int PlaceAsset(AssetData asset, Vector3 position, int rotation, int height)
     {
         // I don't know how to make this better
         Vector2 lengthOffset = Vector2.zero;
@@ -40,6 +40,7 @@ public class AssetPlacer : MonoBehaviour
                                                           0.5f + ((asset.Size.y - 1) * 0.5f) + lengthOffset.y);
         assetObject.transform.localEulerAngles = new Vector3(0f, rotation * 90f, 0f);
         placedAssets.Add(assetObject);
+
         return placedAssets.Count - 1;
     }
 

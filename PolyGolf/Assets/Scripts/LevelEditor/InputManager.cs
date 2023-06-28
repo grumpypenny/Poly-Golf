@@ -20,6 +20,8 @@ public class InputManager : MonoBehaviour
     public event Action OnRotateClockwise;
     public event Action OnIncreaseHeight;
     public event Action OnDecreaseHeight;
+    public event Action OnUndo;
+    public event Action OnRedo;
     public event Action OnExit;
 
     private void Update()

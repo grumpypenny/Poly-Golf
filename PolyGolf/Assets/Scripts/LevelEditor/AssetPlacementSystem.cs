@@ -20,6 +20,9 @@ public class AssetPlacementSystem : MonoBehaviour
     [SerializeField]
     private AssetPlacer assetPlacer;
 
+    [SerializeField]
+    private PlacementHistory placementHistory;
+
     IPlacementState placementState;
 
     private Vector3Int lastDetectedPosition = Vector3Int.zero;
@@ -41,13 +44,15 @@ public class AssetPlacementSystem : MonoBehaviour
     public void StartPlacement(int id)
     {
         StopPlacement();
-        placementState = new PlacementState(id, grid, previewSystem, database, assetGridData, assetData, assetPlacer);
+        placementState = new PlacementState(id, grid, previewSystem, database, assetGridData, assetData, assetPlacer, placementHistory);
         inputManager.OnClicked += PlaceAsset;
         inputManager.OnRemoved += RemoveAsset;
         inputManager.OnRotateClockwise += RotateAssetClockwise;
         inputManager.OnRotateCounterClockwise += RotateAssetCounterClockwise;
         inputManager.OnIncreaseHeight += IncreaseAssetHeight;
         inputManager.OnDecreaseHeight += DecreaseAssetHeight;
+        inputManager.OnUndo += Undo;
+        inputManager.OnRedo += Redo;
         inputManager.OnExit += StopPlacement;
     }
 
@@ -76,6 +81,16 @@ public class AssetPlacementSystem : MonoBehaviour
         placementState.OnRemove(gridPosition, currentAssetHeight);
     }
 
+    public void Undo()
+    {
+        placementState.Undo();
+    }
+
+    public void Redo()
+    {
+        placementState.Redo();
+    }
+
     private void StopPlacement()
      {
         if (placementState == null)
@@ -91,6 +106,8 @@ public class AssetPlacementSystem : MonoBehaviour
         inputManager.OnRotateCounterClockwise -= RotateAssetCounterClockwise;
         inputManager.OnIncreaseHeight -= IncreaseAssetHeight;
         inputManager.OnDecreaseHeight -= DecreaseAssetHeight;
+        inputManager.OnUndo -= Undo;
+        inputManager.OnRedo -= Redo;
         lastDetectedPosition = Vector3Int.zero;
         lastDetectedRotation = -1;
         lastAssetHeight = -1;

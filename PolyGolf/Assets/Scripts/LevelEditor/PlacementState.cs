@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +12,7 @@ public class PlacementState : IPlacementState
     LevelEditorGridData assetGridData;
     LevelEditorGridData assetData;
     AssetPlacer assetPlacer;
+    PlacementHistory placementHistory;
 
     public PlacementState(int index,
                           Grid grid,
@@ -18,7 +20,8 @@ public class PlacementState : IPlacementState
                           LevelAssetsDatabase database,
                           LevelEditorGridData assetGridData,
                           LevelEditorGridData assetData,
-                          AssetPlacer assetPlacer)
+                          AssetPlacer assetPlacer,
+                          PlacementHistory placementHistory)
     {
         this.grid = grid;
         this.previewSystem = previewSystem;
@@ -26,6 +29,7 @@ public class PlacementState : IPlacementState
         this.assetGridData = assetGridData;
         this.assetData = assetData;
         this.assetPlacer = assetPlacer;
+        this.placementHistory = placementHistory;
 
         selectedObjectIdx = index;
         previewSystem.StartShowingPlacementPreview(database.assets[selectedObjectIdx].Prefab, database.assets[selectedObjectIdx].Size);
@@ -47,8 +51,9 @@ public class PlacementState : IPlacementState
         int index = assetPlacer.PlaceAsset(database.assets[selectedObjectIdx], grid.CellToWorld(gridPosition), rotation, height);
 
         LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
-        selectedData.AddObjectAt(gridPosition, rotation, height, database.assets[selectedObjectIdx].Size, index);
+        AssetPlacementData placementData = selectedData.AddObjectAt(database.assets[selectedObjectIdx], gridPosition, rotation, height, database.assets[selectedObjectIdx].Size, index);
 
+        placementHistory.UpdateHistory(new PlacementHistoryState(placementData, PlacementType.Placement));
         previewSystem.UpdatePosition(grid.CellToWorld(gridPosition), rotation, height, false);
     }
 
@@ -62,8 +67,48 @@ public class PlacementState : IPlacementState
             return;
         }
 
-        selectedData.RemoveObjectAt(gridPosition, height);
+        AssetPlacementData placementData = selectedData.RemoveObjectAt(gridPosition, height);
+        placementHistory.UpdateHistory(new PlacementHistoryState(placementData, PlacementType.Removal));
         assetPlacer.RemoveAsset(idx);
+    }
+
+    public void Undo()
+    {
+        PlacementHistoryState state = placementHistory.Undo();
+        HandleHistoryChange(state);
+    }
+
+    public void Redo()
+    {
+        PlacementHistoryState state = placementHistory.Redo();
+        HandleHistoryChange(state);
+    }
+
+    private void HandleHistoryChange(PlacementHistoryState state)
+    {
+        if (state == null)
+        {
+            return;
+        }
+
+        if (state.placementType == PlacementType.Removal)
+        {
+            int index = assetPlacer.PlaceAsset(state.placementData.asset, state.placementData.position, state.placementData.rotation, state.placementData.height);
+            LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
+            selectedData.AddObjectAt(state.placementData.asset, state.placementData.position, state.placementData.rotation, state.placementData.height, state.placementData.asset.Size, index);
+            previewSystem.UpdatePosition(state.placementData.position, state.placementData.rotation, state.placementData.height, false);
+        }
+        else
+        {
+            LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
+            int idx = selectedData.GetRepresentationIndex(state.placementData.position, state.placementData.height);
+            if (idx == -1)
+            {
+                return;
+            }
+            selectedData.RemoveObjectAt(state.placementData.position, state.placementData.height);
+            assetPlacer.RemoveAsset(idx);
+        }
     }
 
     private bool CheckPlacementValidity(Vector3Int gridPosition, int rotation, int height, int selectedObjectIdx)

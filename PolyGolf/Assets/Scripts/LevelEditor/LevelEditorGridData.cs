@@ -8,10 +8,10 @@ public class LevelEditorGridData
 
     Dictionary<Vector3Int, AssetPlacementData> placedAssets = new();
 
-    public void AddObjectAt(Vector3Int gridPosition, int rotation, int height, Vector2 objectSize, int assetId)
+    public AssetPlacementData AddObjectAt(AssetData asset, Vector3Int gridPosition, int rotation, int height, Vector2 objectSize, int idx)
     {
         List<Vector3Int> positionsToOccupy = CalculatePositions(gridPosition, rotation, height, objectSize);
-        AssetPlacementData data = new AssetPlacementData(positionsToOccupy, assetId);
+        AssetPlacementData data = new AssetPlacementData(positionsToOccupy, idx, asset, gridPosition, rotation, height);
 
         foreach (var pos in positionsToOccupy)
         {
@@ -21,16 +21,26 @@ public class LevelEditorGridData
             }
             placedAssets[pos] = data;
         }
+        return data;
     }
 
-    public void RemoveObjectAt(Vector3Int gridPosition, int height)
+    public AssetPlacementData RemoveObjectAt(Vector3Int gridPosition, int height)
     {
         Vector3Int processed = new Vector3Int(gridPosition.x, height, gridPosition.z);
+
+        if (!placedAssets.ContainsKey(processed))
+        {
+            return null;
+        }
+
+        AssetPlacementData data = placedAssets[processed];
         foreach (var pos in placedAssets[processed].occupiedPositions)
         {
             placedAssets.Remove(pos);
         }
+        return data;
     }
+
 
     public int GetRepresentationIndex(Vector3Int gridPosition, int height)
     {
@@ -39,13 +49,16 @@ public class LevelEditorGridData
         {
             return -1;
         }
-        return placedAssets[processed].assetId;
+        return placedAssets[processed].idx;
     }
+
 
     private List<Vector3Int> CalculatePositions(Vector3Int gridPosition, int rotation, int height, Vector2 objectSize)
     {
         List<Vector3Int> returnVal = new();
 
+        // rotation is index of sin/cos table
+        // 0 -> 0 deg, 1 -> 90 deg, 2 -> 180 deg, 3 -> 270 deg
         int[] sin = new int[4] { 0, 1, 0, -1 };
         int[] cos = new int[4] { 1, 0, -1, 0 };
 
@@ -77,13 +90,23 @@ public class LevelEditorGridData
 
 public class AssetPlacementData
 {
+    public AssetData asset { get; private set; }
+
+    public Vector3Int position { get; private set; }
+    public int rotation { get; private set; }
+    public int height { get; private set; }
+
     public List<Vector3Int> occupiedPositions;
 
-    public int assetId { get; private set; }
+    public int idx { get; private set; }
 
-    public AssetPlacementData(List<Vector3Int> occupiedPositions, int assetId)
+    public AssetPlacementData(List<Vector3Int> occupiedPositions, int idx, AssetData asset, Vector3Int position, int rotation, int height)
     {
         this.occupiedPositions = occupiedPositions;
-        this.assetId = assetId;
+        this.idx = idx;
+        this.asset = asset;
+        this.position =  position;
+        this.rotation = rotation;
+        this.height = height;
     }
 }
