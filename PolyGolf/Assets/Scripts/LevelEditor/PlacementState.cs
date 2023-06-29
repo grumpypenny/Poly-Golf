@@ -75,30 +75,29 @@ public class PlacementState : IPlacementState
     public void Undo()
     {
         PlacementHistoryState state = placementHistory.Undo();
-        HandleHistoryChange(state);
+        HandleHistoryChange(state, true);
     }
 
     public void Redo()
     {
         PlacementHistoryState state = placementHistory.Redo();
-        HandleHistoryChange(state);
+        HandleHistoryChange(state, false);
     }
 
-    private void HandleHistoryChange(PlacementHistoryState state)
+    private void HandleHistoryChange(PlacementHistoryState state, bool IsUndo)
     {
         if (state == null)
         {
             return;
         }
 
-        if (state.placementType == PlacementType.Removal)
+        if ((IsUndo && state.placementType == PlacementType.Removal) || (!IsUndo && state.placementType == PlacementType.Placement))
         {
             int index = assetPlacer.PlaceAsset(state.placementData.asset, state.placementData.position, state.placementData.rotation, state.placementData.height);
             LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
             selectedData.AddObjectAt(state.placementData.asset, state.placementData.position, state.placementData.rotation, state.placementData.height, state.placementData.asset.Size, index);
-            previewSystem.UpdatePosition(state.placementData.position, state.placementData.rotation, state.placementData.height, false);
         }
-        else
+        else if ((IsUndo && state.placementType == PlacementType.Placement) || (!IsUndo && state.placementType == PlacementType.Removal))
         {
             LevelEditorGridData selectedData = selectedObjectIdx == 0 ? assetGridData : assetData;
             int idx = selectedData.GetRepresentationIndex(state.placementData.position, state.placementData.height);

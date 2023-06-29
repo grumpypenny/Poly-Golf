@@ -56,6 +56,16 @@ public class InputManager : MonoBehaviour
             OnDecreaseHeight?.Invoke();
         }
 
+        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.Z))
+        {
+            OnUndo?.Invoke();
+        }
+
+        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.U))
+        {
+            OnRedo?.Invoke();
+        }
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             OnExit?.Invoke();
