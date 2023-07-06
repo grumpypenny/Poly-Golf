@@ -22,6 +22,7 @@ public class InputManager : MonoBehaviour
     public event Action OnDecreaseHeight;
     public event Action OnUndo;
     public event Action OnRedo;
+    public event Action OnSave;
     public event Action OnExit;
 
     private void Update()
@@ -61,9 +62,14 @@ public class InputManager : MonoBehaviour
             OnUndo?.Invoke();
         }
 
-        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.U))
+        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.Y))
         {
             OnRedo?.Invoke();
+        }
+
+        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.S))
+        {
+            OnSave?.Invoke();
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using UnityEngine;
 
 public class LevelEditorGridData
@@ -8,10 +10,10 @@ public class LevelEditorGridData
 
     Dictionary<Vector3Int, AssetPlacementData> placedAssets = new();
 
-    public AssetPlacementData AddObjectAt(AssetData asset, Vector3Int gridPosition, int rotation, int height, Vector2 objectSize, int idx)
+    public AssetPlacementData AddObjectAt(AssetData asset, int assetId, Vector3Int gridPosition, int rotation, int height, Vector2 objectSize, int idx)
     {
         List<Vector3Int> positionsToOccupy = CalculatePositions(gridPosition, rotation, height, objectSize);
-        AssetPlacementData data = new AssetPlacementData(positionsToOccupy, idx, asset, gridPosition, rotation, height);
+        AssetPlacementData data = new AssetPlacementData(positionsToOccupy, idx, asset, assetId, gridPosition, rotation, height);
 
         foreach (var pos in positionsToOccupy)
         {
@@ -86,11 +88,19 @@ public class LevelEditorGridData
         }
         return true;
     }
+
+    public IReadOnlyList<AssetPlacementData> GetPlacedAssets()
+    {
+        return placedAssets.Select(kvp => kvp.Value).ToList().AsReadOnly();
+    }
 }
 
+[Serializable]
 public class AssetPlacementData
 {
     public AssetData asset { get; private set; }
+
+    public int assetId { get; private set; }
 
     public Vector3Int position { get; private set; }
     public int rotation { get; private set; }
@@ -100,10 +110,11 @@ public class AssetPlacementData
 
     public int idx { get; private set; }
 
-    public AssetPlacementData(List<Vector3Int> occupiedPositions, int idx, AssetData asset, Vector3Int position, int rotation, int height)
+    public AssetPlacementData(List<Vector3Int> occupiedPositions, int idx, AssetData asset, int assetId, Vector3Int position, int rotation, int height)
     {
         this.occupiedPositions = occupiedPositions;
         this.idx = idx;
+        this.assetId = assetId;
         this.asset = asset;
         this.position =  position;
         this.rotation = rotation;
