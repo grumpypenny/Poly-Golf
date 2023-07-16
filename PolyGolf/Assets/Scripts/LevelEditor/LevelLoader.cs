@@ -145,8 +145,6 @@ public class LevelLoader : MonoBehaviour
             }
         }
 
-        Debug.Log(sourceMeshFilter.Count);
-
         CombineInstance[] combine = new CombineInstance[sourceMeshFilter.Count];
         for (int i = 0; i < sourceMeshFilter.Count; i++)
         {
@@ -155,9 +153,9 @@ public class LevelLoader : MonoBehaviour
         }
 
         Mesh combineMesh = new Mesh();
-        combineMesh.CombineMeshes(combine);
+        combineMesh.CombineMeshes(combine, true, true);
         assetParent.GetComponent<MeshFilter>().mesh = combineMesh;
-
+        assetParent.AddComponent<MeshCollider>();
     }
 }
     
