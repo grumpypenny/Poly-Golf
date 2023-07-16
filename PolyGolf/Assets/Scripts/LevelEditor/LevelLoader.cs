@@ -14,13 +14,17 @@ public class LevelLoader : MonoBehaviour
     [SerializeField]
     private AssetPlacer assetPlacer;
 
-    public bool combineMesh = false;
+    public bool addMeshCollider = false;
 
     public GameObject scrollContentParent;
     public GameObject loadItemPrefab;
 
     public GameObject loadLevelModal;
     public TextMeshProUGUI errorText;
+
+    public GameObject assetParentPrefab;
+    private GameObject assetParent;
+    private List<int> placedObjects = new();
 
     private string filePath;
 
@@ -56,9 +60,9 @@ public class LevelLoader : MonoBehaviour
                 item.transform.SetParent(scrollContentParent.transform);
             }
         }
-        catch (Exception e)
+        catch
         {
-            errorText.text = e.Message;
+            errorText.text = "Error loading save files!";
         }
 
         loadLevelModal.SetActive(true);
@@ -78,22 +82,82 @@ public class LevelLoader : MonoBehaviour
         }
         else
         {
-            using (StreamReader r = new StreamReader(filePath))
+            try
             {
-                string json = r.ReadToEnd();
-                LevelSaveSnapshot levelSave = JsonConvert.DeserializeObject<LevelSaveSnapshot>(json);
-                PlaceAssets(levelSave);
+                using (StreamReader r = new StreamReader(filePath))
+                {
+                    string json = r.ReadToEnd();
+                    LevelSaveSnapshot levelSave = JsonConvert.DeserializeObject<LevelSaveSnapshot>(json);
+                    PlaceAssets(levelSave);
+                    
+                    if (addMeshCollider)
+                    {
+                        CombineMeshes();
+                    }
+                }
+                CloseLoadModal();
             }
-            CloseLoadModal();
+            catch
+            {
+                errorText.text = "Invalid save file!";
+            }
         }
     }
 
     private void PlaceAssets(LevelSaveSnapshot levelSaveSnapshot)
     {
+        // destroy previously placed objs
+        foreach(int index in placedObjects)
+        {
+            assetPlacer.RemoveAsset(index);
+        }
+        placedObjects.Clear();
+
+        if (assetParent == null)
+        {
+            assetParent = Instantiate(assetParentPrefab, Vector3.zero, Quaternion.identity);
+        }
+
         foreach (AssetPlacementSnapshot assetPlacement in levelSaveSnapshot.assets)
         {
             AssetData asset = assetsDatabase.assets[assetPlacement.assetId];
-            assetPlacer.PlaceAsset(asset, assetPlacement.position, assetPlacement.rotation, assetPlacement.height);
+            int idx = assetPlacer.PlaceAsset(asset, assetPlacement.position, assetPlacement.rotation, assetPlacement.height);
+            placedObjects.Add(idx);
+            assetPlacer.GetPlacedObject(idx).transform.parent.SetParent(assetParent.transform);
         }
     }
+
+    private void CombineMeshes()
+    {
+        if (assetParent == null)
+        {
+            Debug.Log("Asset parent is null!");
+            return;
+        }
+
+        List<MeshFilter> sourceMeshFilter = new();
+        foreach (int idx in placedObjects)
+        {
+            MeshFilter mesh = assetPlacer.GetPlacedObject(idx).GetComponent<MeshFilter>();
+            if (mesh != null)
+            {
+                sourceMeshFilter.Add(mesh);
+            }
+        }
+
+        Debug.Log(sourceMeshFilter.Count);
+
+        CombineInstance[] combine = new CombineInstance[sourceMeshFilter.Count];
+        for (int i = 0; i < sourceMeshFilter.Count; i++)
+        {
+            combine[i].mesh = sourceMeshFilter[i].mesh;
+            combine[i].transform = sourceMeshFilter[i].transform.localToWorldMatrix;
+        }
+
+        Mesh combineMesh = new Mesh();
+        combineMesh.CombineMeshes(combine);
+        assetParent.GetComponent<MeshFilter>().mesh = combineMesh;
+
+    }
 }
+    

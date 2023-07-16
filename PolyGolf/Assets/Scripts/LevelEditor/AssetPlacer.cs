@@ -6,6 +6,15 @@ public class AssetPlacer : MonoBehaviour
     [SerializeField]
     private List<GameObject> placedAssets = new();
 
+    public GameObject GetPlacedObject(int idx)
+    {
+        if (idx >= 0 && idx < placedAssets.Count)
+        {
+            return placedAssets[idx];
+        }
+        return null;
+    }
+
     public int PlaceAsset(AssetData asset, Vector3 position, int rotation, int height)
     {
         // I don't know how to make this better
